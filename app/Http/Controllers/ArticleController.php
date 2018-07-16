@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\ArticleRequest;
 use App\Http\Requests;
 use App\Article;
 use App\Http\Resources\Article as ArticleResource;
@@ -16,9 +17,7 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        $articles = Article::paginate(10);
-
-        return ArticleResource::collection($articles);
+        return Article::all();
     }
 
     /**
@@ -27,18 +26,11 @@ class ArticleController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ArticleRequest $request)
     {
-        $article = $request->isMethod('put') ? Article::findOrFail($request->article_id) : new Article;
-        $article->id = $request->input('article_id');
-        $article->title = $request->input('title');
-        $article->body = $request->input('body');
+        $article = Article::create($request->all());
 
-        if ($article->save()) {
-            return new ArticleResource($article);
-
-        }
-
+        return response()->json($article, 201);
     }
 
     /**
@@ -47,13 +39,25 @@ class ArticleController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Article $article)
     {
-
-        $article= Article::findOrFail($id);
-
-        return new ArticleResource($article);
-
+        return $article;
+    }
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(ArticleRequest $request, Article $article)
+    {
+        $article = $request->isMethod('put') ? Article::findOrFail($request->article_id) : new Article;
+        $article->id = $request->input('article_id');
+        $article->title = $request->input('title');
+        $article->body = $request->input('body');
+        if ($article->save()) {
+            return new ArticleResource($article);
+        }
     }
 
 
@@ -66,7 +70,6 @@ class ArticleController extends Controller
     public function destroy($id)
     {
         $article = Article::findorFail($id);
-
         if ($article->delete()) {
             return new ArticleResource($article);
         }
